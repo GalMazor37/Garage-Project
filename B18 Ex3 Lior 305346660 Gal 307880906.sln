@@ -7,12 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ex03.GarageLogic", "GarageL
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ex03.ConsoleUI", "Ex03.ConsoleUI\Ex03.ConsoleUI.csproj", "{5677AB78-CC24-4DE7-B187-163D84E328B0}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DE52524F-0718-4CFF-9BAA-C9A4BA77E3BE}"
-	ProjectSection(SolutionItems) = preProject
-		B18 Ex3 Lior 305346660 Gal 307880906.docx = B18 Ex3 Lior 305346660 Gal 307880906.docx
-		‏‏‫Exercise Checking Report.txt = ‏‏‫Exercise Checking Report.txt
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
