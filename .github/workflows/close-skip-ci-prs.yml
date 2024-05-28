@@ -63,6 +63,3 @@ jobs:
                 }
               }
             }
-
-- name: Remove semver
-        run: npm uninstall semver
