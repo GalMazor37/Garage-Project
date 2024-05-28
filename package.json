@@ -43,7 +43,7 @@
         "@graphql-tools/schema": "10.0.2",
         "@graphql-tools/stitching-directives": "3.0.0",
         "@sap/xsenv": "4.2.0",
-        "@sap/xssec": "4.0.0",
+        "@sap/xssec": "3.0.0",
         "ajv": "8.14.0",
         "ajv-formats": "3.0.1",
         "amqp-client": "4.14.0-20231129154844",
