@@ -22,14 +22,18 @@ jobs:
               state: 'open'
             });
 
+            const oneYearAgo = new Date();
+            oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
             for (const pull of pulls.data) {
-              if (pull.title.startsWith('[skip ci] Update dependency')) {
+              const createdAt = new Date(pull.created_at);
+              if (pull.title.startsWith('[skip ci] Update dependency') && createdAt < oneYearAgo) {
                 await github.rest.pulls.update({
                   owner,
                   repo,
                   pull_number: pull.number,
                   state: 'closed'
                 });
-                console.log(`Closed PR #${pull.number} with title "${pull.title}"`);
+                console.log(`Closed PR #${pull.number} with title "${pull.title}" created at "${pull.created_at}"`);
               }
             }
