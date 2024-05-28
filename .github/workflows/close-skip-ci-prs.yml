@@ -2,20 +2,30 @@ name: Close [skip ci] Update dependency PRs
 
 on:
   schedule:
-    - cron: '*/2 * * * *' # Every 5 minutes
+    - cron: '*/3 * * * *' # Every 5 minutes
   workflow_dispatch: # Allows manual triggering
 
 jobs:
   close-skip-ci-prs:
     runs-on: ubuntu-latest
     steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install semver
+        run: npm install semver
+
       - name: Close [skip ci] Update dependency PRs
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const semver = require('semver');
             const owner = context.repo.owner;
             const repo = context.repo.repo;
+            const dependencyName = 'your-dependency'; // Replace with your specific dependency name
             const pulls = await github.rest.pulls.list({
               owner,
               repo,
@@ -25,15 +35,35 @@ jobs:
             const oneYearAgo = new Date();
             oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
+            const mainBranchPackageJson = await github.rest.repos.getContent({
+              owner,
+              repo,
+              path: 'package.json',
+              ref: 'main' // Ensure you're getting the package.json from the main branch
+            });
+
+            const packageJsonContent = Buffer.from(mainBranchPackageJson.data.content, 'base64').toString();
+            const packageJson = JSON.parse(packageJsonContent);
+            const installedVersion = packageJson.dependencies[dependencyName] || packageJson.devDependencies[dependencyName];
+
             for (const pull of pulls.data) {
               const createdAt = new Date(pull.created_at);
-              if (pull.title.startsWith('[skip ci] Update dependency') && createdAt < oneYearAgo) {
-                await github.rest.pulls.update({
-                  owner,
-                  repo,
-                  pull_number: pull.number,
-                  state: 'closed'
-                });
-                console.log(`Closed PR #${pull.number} with title "${pull.title}" created at "${pull.created_at}"`);
+              const versionMatch = pull.title.match(/\[skip ci\] Update dependency .* to (.+)/);
+              
+              // if (versionMatch && createdAt < oneYearAgo) {
+              if (versionMatch) {
+                const prVersion = versionMatch[1];
+                if (semver.gt(installedVersion, prVersion)) {
+                  await github.rest.pulls.update({
+                    owner,
+                    repo,
+                    pull_number: pull.number,
+                    state: 'closed'
+                  });
+                  console.log(`Closed PR #${pull.number} with title "${pull.title}" because installed version (${installedVersion}) is newer than PR version (${prVersion})`);
+                }
               }
             }
+
+      - name: Remove semver
+        run: npm uninstall semver
