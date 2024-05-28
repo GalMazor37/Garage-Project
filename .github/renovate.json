@@ -1,0 +1,26 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    ":combinePatchMinorReleases",
+    ":dependencyDashboard",
+    ":disableDevDependencies",
+    ":ignoreModulesAndTests",
+    ":npm",
+    ":pinVersions",
+    ":renovatePrefix",
+    ":separateMultipleMajorReleases",
+    "group:monorepos",
+    "group:recommended"
+  ],
+  "enabledManagers": ["npm"],
+  "commitMessagePrefix": "[skip ci]",
+  "schedule": ["* * 1-3 * *"],
+  "ignoreDeps": ["node", "npm"],
+  "labels": ["bot"],
+  "rebaseWhen": "never",
+  "stabilityDays": 3,
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "assignees": ["@I064852"]
+  }
+}
