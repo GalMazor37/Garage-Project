@@ -2,7 +2,7 @@ name: Close [skip ci] Update dependency PRs
 
 on:
   schedule:
-    - cron: '*/2 * * * *' # Every 5 minutes
+    - cron: '*/5 * * * *' # Every 5 minutes
   workflow_dispatch: # Allows manual triggering
 
 jobs:
@@ -14,9 +14,6 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install semver
-        run: npm install semver
-
       - name: Close [skip ci] Update dependency PRs
         uses: actions/github-script@v7
         with:
@@ -25,7 +22,6 @@ jobs:
             const semver = require('semver');
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const dependencyName = 'your-dependency'; // Replace with your specific dependency name
             const pulls = await github.rest.pulls.list({
               owner,
               repo,
@@ -44,14 +40,14 @@ jobs:
 
             const packageJsonContent = Buffer.from(mainBranchPackageJson.data.content, 'base64').toString();
             const packageJson = JSON.parse(packageJsonContent);
-            const installedVersion = packageJson.dependencies[dependencyName] || packageJson.devDependencies[dependencyName];
 
             for (const pull of pulls.data) {
               const createdAt = new Date(pull.created_at);
-              const versionMatch = pull.title.match(/\[skip ci\] Update dependency .* to (.+)/);
-              
-              if (versionMatch && createdAt < oneYearAgo) {
-                const prVersion = versionMatch[1];
+              if (pull.title.startsWith('[skip ci] Update dependency') && createdAt < oneYearAgo) {
+                const dependencyName = pull.title.match(/\[skip ci\] Update dependency (.+) to .+/)[1];
+                const installedVersion = packageJson.dependencies[dependencyName] || packageJson.devDependencies[dependencyName];
+                const prVersion = pull.title.match(/\[skip ci\] Update dependency .+ to (.+)/)[1];
+
                 if (semver.gt(installedVersion, prVersion)) {
                   await github.rest.pulls.update({
                     owner,
