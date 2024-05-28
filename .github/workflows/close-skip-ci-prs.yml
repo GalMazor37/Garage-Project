@@ -1,6 +1,5 @@
 name: Close [skip ci] Update dependency PRs
 
-# Schedule the workflow to run every 5 minutes
 on:
   schedule:
     - cron: '*/2 * * * *' # Every 5 minutes
@@ -17,7 +16,7 @@ jobs:
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const pulls = await github.pulls.list({
+            const pulls = await github.rest.pulls.list({
               owner,
               repo,
               state: 'open'
@@ -25,7 +24,7 @@ jobs:
 
             for (const pull of pulls.data) {
               if (pull.title.startsWith('[skip ci] Update dependency')) {
-                await github.pulls.update({
+                await github.rest.pulls.update({
                   owner,
                   repo,
                   pull_number: pull.number,
