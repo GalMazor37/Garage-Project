@@ -1,0 +1,14 @@
+on:
+  pull_request_target:
+    types:
+      - labeled
+    
+permissions:
+  pull-requests: write
+  contents: write
+  repository-projects: write
+
+jobs:
+  main:
+    if: ${{github.actor == 'ospo-renovate[bot]'}}
+    uses: Portal-CF/gh-actions-workflows/.github/workflows/renovate-add-changelog.yml@master
