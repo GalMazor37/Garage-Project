@@ -1,0 +1,17 @@
+on:
+  pull_request_target:
+    types:
+      - labeled
+      - unlabeled
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+      - edited
+
+permissions:
+  pull-requests: write
+
+jobs:
+  main:
+    uses: Portal-CF/gh-actions-workflows/.github/workflows/PR-title-label-verifier.yml@master
