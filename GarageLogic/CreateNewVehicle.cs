@@ -8,6 +8,8 @@ namespace Ex03.GarageLogic
     {
         private Engine m_CreatedEngine;
         private Vehicle m_CreatedVehicle;
+        private Vehicle m_CreatedVehicle1;
+
 
         public void AddNewCarCompleteInformation(Garage i_MyGarage, string i_LicenseNumberForNewVehicle, string i_VehicleModel, float i_CurrentEnergyLevel, Car.eColorOfCar i_CarColor, Car.eNumberOfDoors i_NumberOfDoors, char i_EnergyType, string i_OwnerName, string i_OwnerPhoneNumber, string i_WheelsModel, float i_CurrentWheelsPSI)
         {      
