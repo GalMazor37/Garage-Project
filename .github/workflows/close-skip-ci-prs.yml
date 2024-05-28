@@ -14,6 +14,9 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install semver
+        run: npm install semver
+
       - name: Close [skip ci] Update dependency PRs
         uses: actions/github-script@v7
         with:
