@@ -27,59 +27,67 @@ jobs:
             const semver = require('semver');
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const pulls = await github.rest.pulls.list({
-              owner,
-              repo,
-              state: 'open'
-            });
 
-            const oneYearAgo = new Date();
-            oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+            // Wrap the script inside an async function
+            async function closePRs() {
+              const pulls = await github.rest.pulls.list({
+                owner,
+                repo,
+                state: 'open'
+              });
 
-            const mainBranchPackageJson = await github.rest.repos.getContent({
-              owner,
-              repo,
-              path: 'package.json',
-              ref: 'master' 
-            });
+              const oneYearAgo = new Date();
+              oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
-            const packageJsonContent = Buffer.from(mainBranchPackageJson.data.content, 'base64').toString();
-            const packageJson = JSON.parse(packageJsonContent);
+              const mainBranchPackageJson = await github.rest.repos.getContent({
+                owner,
+                repo,
+                path: 'package.json',
+                ref: 'master' 
+              });
 
-            for (const pull of pulls.data) {
-              const createdAt = new Date(pull.created_at);
-              if (pull.title.startsWith('[skip ci] Update dependency')) {
-                const versionMatch = pull.title.match(/\[skip ci\] Update dependency (.+) to v(.+)/);
+              const packageJsonContent = Buffer.from(mainBranchPackageJson.data.content, 'base64').toString();
+              const packageJson = JSON.parse(packageJsonContent);
 
-                if (versionMatch) {
-                  const dependencyName = versionMatch[1];
-                  let prVersion = versionMatch[2];
+              for (const pull of pulls.data) {
+                const createdAt = new Date(pull.created_at);
+                if (pull.title.startsWith('[skip ci] Update dependency')) {
+                  const versionMatch = pull.title.match(/\[skip ci\] Update dependency (.+) to v(.+)/);
 
-                  // If the PR version is a single number, append '.0.0'
-                  if (/^\d+$/.test(prVersion)) {
-                    prVersion += '.0.0';
-                  }
-                  const installedVersion = packageJson.dependencies[dependencyName];
+                  if (versionMatch) {
+                    const dependencyName = versionMatch[1];
+                    let prVersion = versionMatch[2];
 
-                  if (installedVersion && semver.gt(installedVersion, prVersion)) {
-                    await github.rest.pulls.update({
-                      owner,
-                      repo,
-                      pull_number: pull.number,
-                      state: 'closed'
-                    });
-                    console.log(`Closed PR #${pull.number} with title "${pull.title}" because installed version (${installedVersion}) is newer than PR version (${prVersion})`);
+                    // If the PR version is a single number, append '.0.0'
+                    if (/^\d+$/.test(prVersion)) {
+                      prVersion += '.0.0';
+                    }
+                    const installedVersion = packageJson.dependencies[dependencyName];
+
+                    if (installedVersion && semver.gt(installedVersion, prVersion)) {
+                      await github.rest.pulls.update({
+                        owner,
+                        repo,
+                        pull_number: pull.number,
+                        state: 'closed'
+                      });
+                      console.log(`Closed PR #${pull.number} with title "${pull.title}" because installed version (${installedVersion}) is newer than PR version (${prVersion})`);
+                    }
                   }
                 }
+                else if (createdAt < oneYearAgo){
+                  await github.rest.pulls.update({
+                        owner,
+                        repo,
+                        pull_number: pull.number,
+                        state: 'closed'
+                      });
+                }
               }
-              # else if (createdAt < oneYearAgo){
-              #   await github.rest.pulls.update({
-              #         owner,
-              #         repo,
-              #         pull_number: pull.number,
-              #         state: 'closed'
-              #       });            
             }
+
+            // Call the async function
+            closePRs();
             execSync('npm uninstall semver');
 
       - name: Remove semver
