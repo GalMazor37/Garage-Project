@@ -49,11 +49,17 @@ jobs:
             for (const pull of pulls.data) {
               const createdAt = new Date(pull.created_at);
               if (pull.title.startsWith('[skip ci] Update dependency')) {
-                const versionMatch = pull.title.match(/\[skip ci\] Update dependency (.+) to (.+)/);
+                const versionMatch = pull.title.match(/\[skip ci\] Update dependency (.+) to v(.+)/);
+
                 if (versionMatch) {
                   const dependencyName = versionMatch[1];
-                  const prVersion = versionMatch[2];
-                  const installedVersion = packageJson.dependencies[dependencyName] || packageJson.devDependencies[dependencyName];
+                  let prVersion = versionMatch[2];
+
+                  // If the PR version is a single number, append '.0.0'
+                  if (/^\d+$/.test(prVersion)) {
+                    prVersion += '.0.0';
+                  }
+                  const installedVersion = packageJson.dependencies[dependencyName];
 
                   if (installedVersion && semver.gt(installedVersion, prVersion)) {
                     await github.rest.pulls.update({
@@ -66,6 +72,13 @@ jobs:
                   }
                 }
               }
+              else if (createdAt < oneYearAgo){
+                await github.rest.pulls.update({
+                      owner,
+                      repo,
+                      pull_number: pull.number,
+                      state: 'closed'
+                    });
             }
             execSync('npm uninstall semver');
 
