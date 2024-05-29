@@ -40,7 +40,7 @@ jobs:
               owner,
               repo,
               path: 'package.json',
-              ref: 'main' // Ensure you're getting the package.json from the main branch
+              ref: 'master' 
             });
 
             const packageJsonContent = Buffer.from(mainBranchPackageJson.data.content, 'base64').toString();
