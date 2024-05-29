@@ -2,7 +2,7 @@ name: Close [skip ci] Update dependency PRs
 
 on:
   schedule:
-    - cron: '* * 1 * *' # Every 5 minutes
+    - cron: '*/5 * * * *' # Every 5 minutes
   workflow_dispatch: # Allows manual triggering
 
 jobs:
@@ -22,6 +22,8 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const { execSync } = require('child_process');
+            execSync('npm install semver');
             const semver = require('semver');
             const owner = context.repo.owner;
             const repo = context.repo.repo;
@@ -47,18 +49,25 @@ jobs:
             for (const pull of pulls.data) {
               const createdAt = new Date(pull.created_at);
               if (pull.title.startsWith('[skip ci] Update dependency') && createdAt < oneYearAgo) {
-                const dependencyName = pull.title.match(/\[skip ci\] Update dependency (.+) to .+/)[1];
-                const installedVersion = packageJson.dependencies[dependencyName] || packageJson.devDependencies[dependencyName];
-                const prVersion = pull.title.match(/\[skip ci\] Update dependency .+ to (.+)/)[1];
+                const versionMatch = pull.title.match(/\[skip ci\] Update dependency (.+) to (.+)/);
+                if (versionMatch) {
+                  const dependencyName = versionMatch[1];
+                  const prVersion = versionMatch[2];
+                  const installedVersion = packageJson.dependencies[dependencyName] || packageJson.devDependencies[dependencyName];
 
-                if (semver.gt(installedVersion, prVersion)) {
-                  await github.rest.pulls.update({
-                    owner,
-                    repo,
-                    pull_number: pull.number,
-                    state: 'closed'
-                  });
-                  console.log(`Closed PR #${pull.number} with title "${pull.title}" because installed version (${installedVersion}) is newer than PR version (${prVersion})`);
+                  if (installedVersion && semver.gt(installedVersion, prVersion)) {
+                    await github.rest.pulls.update({
+                      owner,
+                      repo,
+                      pull_number: pull.number,
+                      state: 'closed'
+                    });
+                    console.log(`Closed PR #${pull.number} with title "${pull.title}" because installed version (${installedVersion}) is newer than PR version (${prVersion})`);
+                  }
                 }
               }
             }
+            execSync('npm uninstall semver');
+
+      - name: Remove semver
+        run: npm uninstall semver
