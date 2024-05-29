@@ -72,13 +72,6 @@ jobs:
                   }
                 }
               }
-              else if (createdAt < oneYearAgo){
-                await github.rest.pulls.update({
-                      owner,
-                      repo,
-                      pull_number: pull.number,
-                      state: 'closed'
-                    });
             }
             execSync('npm uninstall semver');
 
