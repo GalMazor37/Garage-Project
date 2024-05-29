@@ -48,7 +48,7 @@ jobs:
 
             for (const pull of pulls.data) {
               const createdAt = new Date(pull.created_at);
-              if (pull.title.startsWith('[skip ci] Update dependency') && createdAt < oneYearAgo) {
+              if (pull.title.startsWith('[skip ci] Update dependency')) {
                 const versionMatch = pull.title.match(/\[skip ci\] Update dependency (.+) to (.+)/);
                 if (versionMatch) {
                   const dependencyName = versionMatch[1];
