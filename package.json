@@ -54,7 +54,7 @@
         "cross-env": "7.0.3",
         "dataloader": "2.2.2",
         "express": "4.19.2",
-        "feature-flags-client": "1.31.0-20240507120741",
+        "feature-flags-client": "1.30.0-20240507120741",
         "graphql": "16.8.1",
         "graphql-constraint-directive": "5.4.3",
         "graphql-fields": "2.0.3",
