@@ -2,7 +2,7 @@ name: Close [skip ci] Update dependency PRs
 
 on:
   schedule:
-    - cron: '*/5 * * * *' # Every 5 minutes
+    - cron: '0 0 25 * *' 
   workflow_dispatch: # Allows manual triggering
 
 jobs:
