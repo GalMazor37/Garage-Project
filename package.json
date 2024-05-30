@@ -70,7 +70,7 @@
         "portal-cf-shared-lib": "6.56.0-20240512044206",
         "ts-node": "10.9.2",
         "tsconfig-paths": "4.2.0",
-        "typescript": "5.4.5",
+        "typescript": "5.3.5",
         "url-templates": "3.42.0-20240206130940",
         "uuid": "9.0.1"
     },
