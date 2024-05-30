@@ -1,34 +1,22 @@
-name: Close [skip ci] Update dependency PRs
+name: Clean pull request list
 
 on:
   schedule:
-    - cron: '0 0 25 * *' 
+    - cron: '0 0 15 * *' # Run on the 15th of every month at midnight
   workflow_dispatch: # Allows manual triggering
 
 jobs:
-  close-skip-ci-prs:
+  clean-prs-list:
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-
-      - name: Install semver
-        run: npm install semver
-
       - name: Close [skip ci] Update dependency PRs
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const { execSync } = require('child_process');
-            execSync('npm install semver');
-            const semver = require('semver');
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
-            // Wrap the script inside an async function
             async function closePRs() {
               const pulls = await github.rest.pulls.list({
                 owner,
@@ -52,19 +40,34 @@ jobs:
               for (const pull of pulls.data) {
                 const createdAt = new Date(pull.created_at);
                 if (pull.title.startsWith('[skip ci] Update dependency')) {
-                  const versionMatch = pull.title.match(/\[skip ci\] Update dependency (.+) to v(.+)/);
+                  const versionMatch = pull.title.match(/\[skip ci\] Update dependency (.+) to v(\d+(\.\d+){0,2})/);
 
                   if (versionMatch) {
                     const dependencyName = versionMatch[1];
                     let prVersion = versionMatch[2];
 
                     // If the PR version is a single number, append '.0.0'
-                    if (/^\d+$/.test(prVersion)) {
+                    const versionParts = prVersion.split('.');
+                    if (versionParts.length === 1) {
                       prVersion += '.0.0';
+                    } else if (versionParts.length === 2) {
+                      prVersion += '.0';
                     }
+
                     const installedVersion = packageJson.dependencies[dependencyName];
 
-                    if (installedVersion && semver.gt(installedVersion, prVersion)) {
+                    // A simple version comparison without semver
+                    const compareVersions = (v1, v2) => {
+                      const v1Parts = v1.split('.').map(Number);
+                      const v2Parts = v2.split('.').map(Number);
+                      for (let i = 0; i < 3; i++) {
+                        if ((v1Parts[i] || 0) > (v2Parts[i] || 0)) return 1;
+                        if ((v1Parts[i] || 0) < (v2Parts[i] || 0)) return -1;
+                      }
+                      return 0;
+                    };
+
+                    if (installedVersion && compareVersions(installedVersion, prVersion) > 0) {
                       await github.rest.pulls.update({
                         owner,
                         repo,
@@ -74,21 +77,15 @@ jobs:
                       console.log(`Closed PR #${pull.number} with title "${pull.title}" because installed version (${installedVersion}) is newer than PR version (${prVersion})`);
                     }
                   }
-                }
-                else if (createdAt < oneYearAgo){
+                } else if (createdAt < oneYearAgo) {
                   await github.rest.pulls.update({
-                        owner,
-                        repo,
-                        pull_number: pull.number,
-                        state: 'closed'
-                      });
+                    owner,
+                    repo,
+                    pull_number: pull.number,
+                    state: 'closed'
+                  });
                 }
               }
             }
 
-            // Call the async function
             closePRs();
-            execSync('npm uninstall semver');
-
-      - name: Remove semver
-        run: npm uninstall semver
